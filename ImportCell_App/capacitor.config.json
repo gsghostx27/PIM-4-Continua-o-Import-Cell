@@ -1,9 +1,0 @@
-{
-  "appId": "com.importcell.app",
-  "appName": "Import Cell",
-  "webDir": "www",
-  "server": {
-    "androidScheme": "http",
-    "cleartext": true
-  }
-}
