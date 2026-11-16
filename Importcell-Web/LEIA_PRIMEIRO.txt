@@ -1,0 +1,42 @@
+# IMPORTCELL — GUIA DE UTILIZAÇÃO
+
+Bem-vindo à ImportCell!
+
+Este é um site demonstrativo de uma loja de celulares, desenvolvido como projeto acadêmico da UNIP.
+
+## Como abrir o site
+
+1. Extraia o conteúdo do arquivo ZIP para uma pasta do computador.
+2. Abra a pasta 01_Aplicacao_Portatil.
+3. Dê dois cliques no arquivo INICIAR_IMPORTCELL.cmd.
+4. Aguarde alguns segundos. O site abrirá automaticamente no navegador.
+
+Importante: mantenha a janela preta aberta enquanto estiver utilizando o site. Para encerrar, feche o navegador e pressione `Ctrl + C` na janela preta.
+
+## Como testar a ImportCell
+
+Você pode explorar os celulares disponíveis, visualizar preços, escolher cores e opções de armazenamento.
+
+Para experimentar as funcionalidades de compra:
+
+1. Clique em Entrar / Cadastrar e crie uma conta.
+2. Entre com o e-mail e a senha cadastrados.
+3. Escolha um celular e adicione-o ao carrinho.
+4. Abra o carrinho e finalize um pedido de teste.
+5. Consulte seus pedidos e experimente a opção de cancelamento.
+
+Atenção: as compras e os pagamentos são apenas simulações. Nenhum pagamento real será realizado.
+
+## Quer visualizar os códigos?
+
+Abra a pasta 02_Codigo_Fonte. Nela estão os arquivos utilizados no desenvolvimento do projeto, que podem ser consultados no Visual Studio Code.
+
+## Informações importantes
+
+- O sistema foi preparado para computadores com Windows 64 bits.
+- Não é necessário instalar programas adicionais para utilizar a versão portátil.
+- Algumas imagens podem precisar de conexão com a internet.
+- Caso o site não abra imediatamente, aguarde alguns segundos.
+- Se o Windows apresentar um aviso de segurança, confirme a origem do arquivo antes de executá-lo.
+
+Obrigado por conhecer e testar a ImportCell!
