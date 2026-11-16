@@ -1,0 +1,369 @@
+<!-- Inicio do código -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import Cell - Celulares Importados</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+	<!-- CSS -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap');
+
+:root {
+--blue: #00bfff;
+--pink: #ff69b4;
+}
+
+* { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+body { font-family: 'Inter', system_ui, sans-serif; }
+
+.product-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+}
+
+.color-circle {
+    width: 42px; height: 42px; border-radius: 50%; cursor: pointer;
+    border: 3px solid #fff; box-shadow: 0 0 0 4px #e5e7eb;
+}
+.color-circle.selected {
+    border: 3px solid #00bfff; box-shadow: 0 0 0 6px #bae6fd; transform: scale(1.12);
+}
+.storage-btn.active {
+    background-color: #00bfff; color: white; border-color: #00bfff; transform: scale(1.05);
+}
+</style>
+</head>
+<body class="bg-slate-50">
+
+<!-- HEADER -->
+<header class="bg-white shadow-sm sticky top-0 z-50">
+<div class="w-full px-4 sm:px-6 py-5 flex justify-between items-center max-w-screen-2xl mx-auto">
+    <div class="flex items-center gap-3">
+        <div class="w-11 h-11 bg-gradient-to-br from-[#00bfff] to-[#ff69b4] rounded-3xl flex items-center justify-center text-3xl shadow">📱</div>
+        <h1 class="text-3xl font-bold tracking-tighter bg-gradient-to-r from-[#00bfff] to-[#ff69b4] bg-clip-text text-transparent">Import Cell</h1>
+    </div>
+    <div class="flex items-center gap-6">
+        <button onclick="abrirMeusPedidos()" id="meus-pedidos-btn" class="hidden text-sm sm:text-base hover:text-[#00bfff]">📦 Meus Pedidos</button>
+        <button onclick="authClick()" id="auth-button" class="flex items-center gap-2 text-lg hover:text-[#00bfff]">Entrar / Cadastrar 👤</button>
+        <button onclick="toggleCart()" class="flex items-center gap-2 hover:scale-110 transition relative">
+            🛒 <span id="cart-count" class="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+        </button>
+    </div>
+</div>
+</header>
+
+<main class="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-10">
+    <h1 class="text-5xl font-bold text-center mb-4 text-slate-800">Celulares Importados</h1>
+    <p class="text-center text-slate-600 mb-12 text-lg">Os melhores preços do mercado com qualidade premium</p>
+
+    <div class="mb-16">
+        <h2 class="text-4xl font-bold mb-2 text-slate-800">Recomendados para você</h2>
+        <div id="recomendados-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+    </div>
+
+    <h2 class="text-3xl font-bold mb-6 text-slate-800">Todos os Celulares</h2>
+    <div id="produtos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+</main>
+
+<!-- MODAL DO PRODUTO -->
+<div id="product-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onclick="if(event.target === this) closeProductModal()">
+    <div class="bg-white rounded-3xl w-full max-w-lg max-h-[95vh] overflow-y-auto relative" onclick="event.stopImmediatePropagation()">
+        <button onclick="closeProductModal()" class="absolute top-5 right-5 text-4xl">×</button>
+        <div class="p-6">
+            <h2 id="modal-nome" class="text-2xl font-bold mb-4"></h2>
+            <div class="bg-slate-50 rounded-2xl p-4 mb-6 flex justify-center min-h-[300px]">
+                <img id="modal-imagem" class="max-h-[380px] w-full object-contain" alt="Celular">
+            </div>
+            <p id="modal-descricao" class="text-slate-600 mb-6 leading-relaxed"></p>
+
+            <div class="mb-6">
+                <p class="font-semibold mb-3 text-slate-700">Armazenamento</p>
+                <div id="storage-options" class="flex flex-wrap gap-3"></div>
+            </div>
+            <div class="mb-8">
+                <p class="font-semibold mb-3 text-slate-700">Cor</p>
+                <div id="color-options" class="flex gap-4"></div>
+            </div>
+
+            <div class="flex justify-between items-center pt-4 border-t">
+                <div>
+                    <span class="text-sm text-slate-500">Preço</span>
+                    <p id="modal-preco" class="text-3xl font-bold text-[#00bfff]"></p>
+                </div>
+                <button onclick="adicionarAoCarrinho()" class="px-10 py-4 bg-gradient-to-r from-[#00bfff] to-[#ff69b4] text-white font-semibold rounded-3xl">
+                    Adicionar ao Carrinho
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CARRINHO -->
+<div id="cart-drawer" class="hidden fixed inset-0 bg-black/70 z-[150] flex justify-end">
+    <div class="bg-white w-full max-w-md h-full shadow-2xl flex flex-col relative">
+        <button onclick="toggleCart()" class="absolute top-5 right-5 text-4xl">×</button>
+        <div class="px-6 py-5 border-b"><h3 class="text-2xl font-bold">Seu Carrinho</h3></div>
+        <div id="cart-items" class="flex-1 overflow-auto p-6 space-y-6"></div>
+        <div class="p-6 border-t">
+            <div class="space-y-3 mb-6">
+                <div class="flex justify-between"><span class="text-slate-600">Subtotal</span><span id="subtotal">R$ 0,00</span></div>
+                <div class="flex justify-between"><span class="text-slate-600">Frete</span><span class="text-green-600">R$ 15,00</span></div>
+                <div class="flex justify-between text-xl font-bold border-t pt-4">
+                    <span>Total</span><span id="cart-total" class="text-[#00bfff]">R$ 0,00</span>
+                </div>
+            </div>
+            <button onclick="showCheckoutModal()" class="w-full py-6 bg-gradient-to-r from-[#00bfff] to-[#ff69b4] text-white font-semibold text-xl rounded-3xl">
+                Finalizar Compra
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Pagamento MODAL -->
+<div id="checkout-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[200] p-4">
+    <div class="bg-white rounded-3xl w-full max-w-lg max-h-[95vh] overflow-y-auto">
+        <div class="p-8">
+            <h2 class="text-3xl font-bold mb-6">Finalizar Compra</h2>
+            
+            <div class="mb-8">
+                <p class="font-semibold mb-4 text-slate-700">Método de Pagamento</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" role="group" aria-label="Método de pagamento">
+                    <button type="button" onclick="selectPaymentMethod('pix')" id="btn-pix" aria-pressed="true" class="border-2 border-[#00bfff] bg-blue-50 rounded-2xl p-4 text-center transition-colors">📱 PIX</button>
+                    <button type="button" onclick="selectPaymentMethod('cartao')" id="btn-cartao" aria-pressed="false" class="border-2 border-slate-200 rounded-2xl p-4 text-center transition-colors">💳 Crédito</button>
+                    <button type="button" onclick="selectPaymentMethod('debito')" id="btn-debito" aria-pressed="false" class="border-2 border-slate-200 rounded-2xl p-4 text-center transition-colors">💳 Débito</button>
+                </div>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Simulação acadêmica: nenhum pagamento é processado. Use apenas o cartão fictício fornecido abaixo; não digite dados reais.</p>
+            <div id="cartao-demo" class="hidden mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-4 space-y-3">
+              <p class="font-semibold text-slate-700">💳 Cartão de demonstração</p>
+              <label class="block text-sm">Número do cartão (16 dígitos)
+                <input id="demo-numero" inputmode="numeric" maxlength="19" placeholder="0000 0000 0000 0000" class="block w-full mt-1 px-3 py-2 border rounded-xl" autocomplete="off" oninput="formatarCartaoDemo(this)">
+              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="block text-sm">Validade
+                  <input id="demo-validade" maxlength="5" placeholder="MM/AA" class="block w-full mt-1 px-3 py-2 border rounded-xl" autocomplete="off" oninput="formatarValidadeDemo(this)">
+                </label>
+                <label class="block text-sm">Código de segurança
+                  <input id="demo-cvv" maxlength="3" placeholder="000" inputmode="numeric" class="block w-full mt-1 px-3 py-2 border rounded-xl" autocomplete="off">
+                </label>
+              </div>
+              <p class="text-xs text-slate-500">Exemplo para teste: 4242 4242 4242 4242 · 12/30 · 123. Não use cartões reais.</p>
+            </div>
+<div class="mb-8">
+                <p class="font-semibold mb-3 text-slate-700">Endereço de Entrega</p>
+                <textarea id="endereco-entrega" rows="3" placeholder="Rua, número e bairro" class="w-full px-4 py-3 border border-slate-300 rounded-2xl"></textarea><input id="cidade-entrega" placeholder="Cidade" class="w-full px-4 py-3 mt-3 border rounded-2xl"><input id="cep-entrega" placeholder="CEP" class="w-full px-4 py-3 mt-3 border rounded-2xl">
+            </div>
+
+            <div class="flex justify-between items-center text-2xl font-bold mb-8">
+                <span>Total</span>
+                <span id="modal-total" class="text-[#00bfff]">R$ 0,00</span>
+            </div>
+
+            <button onclick="confirmarPagamento()" class="w-full py-6 bg-gradient-to-r from-[#00bfff] to-[#ff69b4] text-white font-semibold text-xl rounded-3xl">
+                Registrar Pedido
+            </button>
+            <button onclick="closeCheckoutModal()" class="mt-4 w-full text-slate-500 hover:text-slate-700">Voltar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MEUS PEDIDOS -->
+<div id="pedidos-modal" class="hidden fixed inset-0 bg-black/70 z-[230] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Meus pedidos">
+ <div class="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+  <div class="flex justify-between items-center mb-5"><h2 class="text-2xl font-bold">📦 Meus Pedidos</h2><button onclick="fecharMeusPedidos()" class="text-2xl" aria-label="Fechar">✕</button></div>
+  <div id="pedidos-lista" class="space-y-4" aria-live="polite">Carregando...</div>
+ </div>
+</div>
+
+<!-- LOGIN E CADASTRO -->
+<div id="auth-modal" class="hidden fixed inset-0 bg-black/70 z-[250] flex items-center justify-center p-4">
+ <div class="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-7 relative">
+  <button onclick="closeAuthModal()" class="absolute right-5 top-3 text-3xl">×</button>
+  <h2 class="text-2xl font-bold mb-5">Minha conta</h2>
+  <div class="flex gap-3 mb-5"><button class="font-semibold text-sky-600" onclick="switchTab(0)">Entrar</button><button class="font-semibold text-sky-600" onclick="switchTab(1)">Cadastrar</button></div>
+  <div id="login-form" class="space-y-3"><input id="login-email" type="email" placeholder="E-mail" class="w-full border p-3 rounded-xl"><input id="login-senha" type="password" placeholder="Senha" class="w-full border p-3 rounded-xl"><button onclick="fazerLogin()" class="w-full bg-sky-500 text-white rounded-xl p-3">Entrar</button></div>
+  <div id="register-form" class="hidden space-y-3"><input id="reg-nome" placeholder="Nome completo" class="w-full border p-3 rounded-xl"><input id="reg-email" type="email" placeholder="E-mail" class="w-full border p-3 rounded-xl"><input id="reg-senha" type="password" placeholder="Senha" class="w-full border p-3 rounded-xl"><input id="reg-telefone" placeholder="Telefone" class="w-full border p-3 rounded-xl"><input id="reg-endereco" placeholder="Endereço" class="w-full border p-3 rounded-xl"><input id="reg-cidade" placeholder="Cidade" class="w-full border p-3 rounded-xl"><input id="reg-cep" placeholder="CEP" class="w-full border p-3 rounded-xl"><button onclick="fazerCadastro()" class="w-full bg-sky-500 text-white rounded-xl p-3">Criar conta</button></div>
+ </div>
+</div>
+<script>
+// URL do backend. Emulador Android: 10.0.2.2 | Celular real: IP do seu PC | Produção: https://seu-dominio
+const API_BASE = 'http://10.0.2.2:5000';
+const API = API_BASE + '/api';
+const money = n => Number(n || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let produtos=[], carrinho=[], produtoSelecionado=null, corSelecionada=null, armazenamentoSelecionado=null;
+let token=sessionStorage.getItem('importcell_token');
+let usuarioLogado=JSON.parse(sessionStorage.getItem('importcell_usuario')||'null');
+let paymentMethod='pix';
+async function request(path, options={}) {
+ const headers={'Content-Type':'application/json',...(options.headers||{})};
+ if(token) headers.Authorization=`Bearer ${token}`;
+ let response;
+ try { response=await fetch(API+path,{...options,headers}); }
+ catch {throw new Error('Não foi possível conectar à API. Verifique se o backend está rodando.');}
+ const text=await response.text();
+ let data;try{data=text?JSON.parse(text):null}catch{data=text}
+ if(!response.ok){const message=typeof data==='string'?data:(data?.title||data?.mensagem||`Erro HTTP ${response.status}`);throw new Error(message)}
+ return data;
+}
+async function carregarProdutos(){
+ try {
+  const [smartphones,cores,armazenamentos]=await Promise.all([request('/Smartphone'),request('/Cor'),request('/Armazenamento')]);
+  produtos=smartphones.filter(p=>p.ativo).map(p=>({
+   id:p.produtoId,nome:p.nome,descricao:p.descricao||'',precoBase:p.precoBase,imagemBase:p.imagemBase||'',
+   cores:cores.filter(c=>c.produtoId===p.produtoId).map(c=>({id:c.corId,nome:c.nomeCor,cor:c.codigoHex||'#cccccc',imagem:c.imagemCor||p.imagemBase||''})),
+   armazenamento:armazenamentos.filter(a=>a.produtoId===p.produtoId).map(a=>({id:a.armazenamentoId,tamanho:a.tamanho,preco:a.preco,estoque:a.estoque}))
+  }));
+  renderProdutos();renderRecomendadosPersonalizados();
+ }catch(e){document.getElementById('produtos-grid').textContent='Erro ao carregar catálogo: '+e.message;}
+}
+function card(p){return `<div class="product-card bg-white rounded-3xl overflow-hidden shadow cursor-pointer" onclick="abrirModalProduto(${p.id})"><img src="${escapeHtml(p.imagemBase)}" alt="${escapeHtml(p.nome)}" class="w-full h-56 object-contain p-4"><div class="p-6"><h3 class="font-bold text-lg">${escapeHtml(p.nome)}</h3><p class="text-sm text-slate-500 line-clamp-2 my-2">${escapeHtml(p.descricao)}</p><p class="text-2xl font-bold text-[#00bfff] mt-3">${money(p.precoBase)}</p></div></div>`}
+function renderProdutos(){document.getElementById('produtos-grid').innerHTML=produtos.length?produtos.map(card).join(''):'Nenhum smartphone ativo encontrado.'}
+function renderRecomendadosPersonalizados(){document.getElementById('recomendados-grid').innerHTML=produtos.slice(0,3).map(card).join('')}
+function abrirModalProduto(id){
+ produtoSelecionado=produtos.find(p=>p.id===id);if(!produtoSelecionado)return;
+ corSelecionada=null;armazenamentoSelecionado=null;
+ document.getElementById('modal-nome').textContent=produtoSelecionado.nome;
+ document.getElementById('modal-descricao').textContent=produtoSelecionado.descricao;
+ document.getElementById('modal-imagem').src=produtoSelecionado.imagemBase;
+ document.getElementById('storage-options').innerHTML=produtoSelecionado.armazenamento.map((a,i)=>`<button class="storage-btn border-2 border-slate-300 px-6 py-3 rounded-2xl font-medium ${a.estoque<=0?'opacity-40':''}" ${a.estoque<=0?'disabled':''} onclick="selecionarArmazenamento(this,${i})">${escapeHtml(a.tamanho)} (${a.estoque} em estoque)</button>`).join('');
+ document.getElementById('color-options').innerHTML=produtoSelecionado.cores.map((c,i)=>`<button title="${escapeHtml(c.nome)}" aria-label="${escapeHtml(c.nome)}" class="color-circle" style="background-color:${/^#[0-9a-fA-F]{6}$/.test(c.cor)?c.cor:'#ccc'}" onclick="selecionarCor(this,${i})"></button>`).join('');
+ const available=produtoSelecionado.armazenamento.findIndex(a=>a.estoque>0);
+ if(available>=0) selecionarArmazenamento(document.querySelectorAll('#storage-options button')[available],available);
+ if(produtoSelecionado.cores.length) selecionarCor(document.querySelector('#color-options button'),0);
+ document.getElementById('modal-preco').textContent=armazenamentoSelecionado?money(armazenamentoSelecionado.preco):'Indisponível';
+ document.getElementById('product-modal').classList.remove('hidden');
+}
+function selecionarArmazenamento(el,index){document.querySelectorAll('#storage-options button').forEach(e=>e.classList.remove('active'));el.classList.add('active');armazenamentoSelecionado=produtoSelecionado.armazenamento[index];document.getElementById('modal-preco').textContent=money(armazenamentoSelecionado.preco)}
+function selecionarCor(el,index){document.querySelectorAll('#color-options button').forEach(e=>e.classList.remove('selected'));el.classList.add('selected');corSelecionada=produtoSelecionado.cores[index];document.getElementById('modal-imagem').src=corSelecionada.imagem||produtoSelecionado.imagemBase}
+function closeProductModal(){document.getElementById('product-modal').classList.add('hidden')}
+function adicionarAoCarrinho(){
+ if(!corSelecionada||!armazenamentoSelecionado)return alert('Escolha cor e armazenamento disponíveis.');
+ const existing=carrinho.find(i=>i.corId===corSelecionada.id&&i.armazenamentoId===armazenamentoSelecionado.id);
+ const quantity=(existing?.quantidade||0)+1;
+ if(quantity>armazenamentoSelecionado.estoque)return alert('Estoque insuficiente.');
+ if(existing)existing.quantidade++;else carrinho.push({produtoId:produtoSelecionado.id,corId:corSelecionada.id,armazenamentoId:armazenamentoSelecionado.id,nome:produtoSelecionado.nome,cor:corSelecionada.nome,armazenamento:armazenamentoSelecionado.tamanho,preco:armazenamentoSelecionado.preco,imagem:corSelecionada.imagem,quantidade:1});
+ atualizarContadorCarrinho();closeProductModal();alert('Adicionado ao carrinho!');
+}
+function toggleCart(){const el=document.getElementById('cart-drawer');el.classList.toggle('hidden');if(!el.classList.contains('hidden'))renderCarrinho()}
+function atualizarContadorCarrinho(){document.getElementById('cart-count').textContent=carrinho.reduce((n,i)=>n+i.quantidade,0)}
+function removerDoCarrinho(index){carrinho.splice(index,1);renderCarrinho();atualizarContadorCarrinho()}
+function subtotal(){return carrinho.reduce((n,i)=>n+i.preco*i.quantidade,0)}
+function renderCarrinho(){
+ document.getElementById('cart-items').innerHTML=carrinho.length?carrinho.map((i,n)=>`<div class="flex gap-4 border-b pb-6"><img src="${escapeHtml(i.imagem)}" alt="" class="w-20 h-20 object-contain"><div class="flex-1"><p class="font-medium">${escapeHtml(i.nome)}</p><p class="text-sm">${escapeHtml(i.cor)} • ${escapeHtml(i.armazenamento)} • Qtd: ${i.quantidade}</p><p class="font-bold">${money(i.preco*i.quantidade)}</p></div><button onclick="removerDoCarrinho(${n})" class="text-red-500 text-2xl">×</button></div>`).join(''):'<p class="text-center text-slate-400 py-16">Seu carrinho está vazio.</p>';
+ document.getElementById('subtotal').textContent=money(subtotal());document.getElementById('cart-total').textContent=money(carrinho.length?subtotal()+15:0);
+}
+function showAuthModal(){document.getElementById('auth-modal').classList.remove('hidden');switchTab(0)}
+function closeAuthModal(){document.getElementById('auth-modal').classList.add('hidden')}
+function switchTab(tab){document.getElementById('login-form').classList.toggle('hidden',tab!==0);document.getElementById('register-form').classList.toggle('hidden',tab!==1)}
+function atualizarAuthButton(){document.getElementById('auth-button').textContent=usuarioLogado?`Olá, ${usuarioLogado.nome} (Sair)`:'Entrar / Cadastrar 👤';document.getElementById('meus-pedidos-btn').classList.toggle('hidden',!token)}
+function authClick(){if(usuarioLogado){if(confirm('Deseja sair da conta?')){token=null;usuarioLogado=null;sessionStorage.removeItem('importcell_token');sessionStorage.removeItem('importcell_usuario');fecharMeusPedidos();atualizarAuthButton()}}else showAuthModal()}
+async function fazerCadastro(){
+ const nome=document.getElementById('reg-nome').value.trim(),email=document.getElementById('reg-email').value.trim(),senha=document.getElementById('reg-senha').value;
+ const telefone=document.getElementById('reg-telefone').value.trim(),endereco=document.getElementById('reg-endereco').value.trim(),cidade=document.getElementById('reg-cidade').value.trim(),cep=document.getElementById('reg-cep').value.trim();
+ try{await request('/Usuario',{method:'POST',body:JSON.stringify({nome,email,senha,telefone,endereco,cidade,cep})});alert('Cadastro realizado! Faça login.');switchTab(0);document.getElementById('login-email').value=email}
+ catch(e){alert('Cadastro: '+e.message)}
+}
+async function fazerLogin(){
+ const email=document.getElementById('login-email').value.trim(),senha=document.getElementById('login-senha').value;
+ try{const result=await request('/Auth/login',{method:'POST',body:JSON.stringify({email,senha})});
+ if(!result.token)throw new Error('A API não retornou o token.');
+ token=result.token;sessionStorage.setItem('importcell_token',token);
+ usuarioLogado={nome:result.nome||email};sessionStorage.setItem('importcell_usuario',JSON.stringify(usuarioLogado));
+ atualizarAuthButton();closeAuthModal();alert('Login realizado!');}
+ catch(e){alert('Login: '+e.message)}
+}
+function showCheckoutModal(){if(!carrinho.length)return alert('Carrinho vazio!');if(!token)return alert('Faça login antes de finalizar o pedido.');document.getElementById('cart-drawer').classList.add('hidden');document.getElementById('checkout-modal').classList.remove('hidden');selectPaymentMethod('pix');atualizarTotalModal()}
+function closeCheckoutModal(){document.getElementById('checkout-modal').classList.add('hidden')}
+function formatarCartaoDemo(el){const n=el.value.replace(/\D/g,'').slice(0,16);el.value=n.replace(/(.{4})/g,'$1 ').trim()}
+function formatarValidadeDemo(el){const n=el.value.replace(/\D/g,'').slice(0,4);el.value=n.length>2?n.slice(0,2)+'/'+n.slice(2):n}
+function validarCartaoDemo(){
+ if(paymentMethod==='pix')return true;
+ const numero=document.getElementById('demo-numero').value.replace(/\D/g,'');
+ const validade=document.getElementById('demo-validade').value;
+ const cvv=document.getElementById('demo-cvv').value;
+ if(numero!=='4242424242424242'||validade!=='12/30'||cvv!=='123'){
+  alert('Use somente os dados fictícios de demonstração: 4242 4242 4242 4242, validade 12/30 e código 123.');return false;
+ }
+ return true;
+}
+function selectPaymentMethod(method){
+ if(!['pix','cartao','debito'].includes(method))return;
+ paymentMethod=method;
+ document.getElementById('cartao-demo').classList.toggle('hidden',method==='pix');
+ for(const [id,value] of [['btn-pix','pix'],['btn-cartao','cartao'],['btn-debito','debito']]){
+  const button=document.getElementById(id);
+  const selected=method===value;
+  button.classList.toggle('border-[#00bfff]',selected);
+  button.classList.toggle('bg-blue-50',selected);
+  button.classList.toggle('border-slate-200',!selected);
+  button.classList.toggle('bg-white',!selected);
+  button.setAttribute('aria-pressed',String(selected));
+ }
+}
+function atualizarTotalModal(){document.getElementById('modal-total').textContent=money(subtotal()+15)}
+async function confirmarPagamento(){
+ const enderecoEntrega=document.getElementById('endereco-entrega').value.trim(),cidadeEntrega=document.getElementById('cidade-entrega').value.trim(),cepEntrega=document.getElementById('cep-entrega').value.trim();
+ if(!enderecoEntrega||!cidadeEntrega||!cepEntrega)return alert('Preencha endereço, cidade e CEP.');
+ if(!validarCartaoDemo())return;
+ const itens=carrinho.map(i=>({armazenamentoId:i.armazenamentoId,corId:i.corId,quantidade:i.quantidade}));
+ try{const pedido=await request('/Pedido',{method:'POST',body:JSON.stringify({enderecoEntrega,cidadeEntrega,cepEntrega,metodoPagamento:paymentMethod,itens})});
+ alert('Pedido registrado com sucesso! '+(pedido?.pedidoId?'Número: '+pedido.pedidoId:'')+'\nPagamento ainda pendente de confirmação.');
+ carrinho=[];atualizarContadorCarrinho();closeCheckoutModal();await carregarProdutos();}
+ catch(e){alert('Não foi possível registrar o pedido: '+e.message)}
+}
+function fecharMeusPedidos(){document.getElementById('pedidos-modal').classList.add('hidden')}
+async function abrirMeusPedidos(){
+ if(!token){showAuthModal();return}
+ document.getElementById('pedidos-modal').classList.remove('hidden');
+ await carregarMeusPedidos();
+}
+async function carregarMeusPedidos(){
+ const lista=document.getElementById('pedidos-lista');lista.textContent='Carregando pedidos...';
+ try{
+  const pedidos=await request('/Pedido');
+  if(!Array.isArray(pedidos))throw new Error('Resposta inesperada da API.');
+  if(!pedidos.length){lista.textContent='Você ainda não fez pedidos.';return}
+  lista.innerHTML=pedidos.sort((a,b)=>b.pedidoId-a.pedidoId).map(p=>{
+   const status=String(p.status||'Pendente');
+   const itens=Array.isArray(p.itens)?p.itens:[];
+   const detalhes=itens.map(i=>{
+    const produto=produtos.find(x=>x.armazenamento.some(a=>a.id===i.armazenamentoId));
+    const armazenamento=produto?.armazenamento.find(a=>a.id===i.armazenamentoId);
+    return `<li>${escapeHtml(produto?.nome||'Produto')} — ${escapeHtml(armazenamento?.tamanho||'')} • ${Number(i.quantidade)||0} un. • ${money(i.subtotal)}</li>`;
+   }).join('');
+   return `<section class="border rounded-2xl p-4 bg-slate-50">
+    <div class="flex flex-wrap justify-between gap-2"><strong>Pedido #${Number(p.pedidoId)}</strong><span class="font-semibold">${escapeHtml(status)}</span></div>
+    <p class="text-sm text-slate-500 my-2">${p.dataPedido?new Date(p.dataPedido).toLocaleString('pt-BR'):''} • ${escapeHtml(p.metodoPagamento||'')}</p>
+    <ul class="text-sm space-y-1 mb-3">${detalhes}</ul>
+    <div class="flex items-center justify-between gap-3"><strong>${money(p.valorTotal)}</strong>${status.toLowerCase()==='pendente'?`<button onclick="cancelarPedidoSite(${Number(p.pedidoId)})" class="text-red-600 border border-red-300 px-3 py-2 rounded-xl hover:bg-red-50">Cancelar pedido</button>`:''}</div>
+   </section>`;
+  }).join('');
+ }catch(e){lista.textContent='Erro ao consultar pedidos: '+e.message}
+}
+async function cancelarPedidoSite(id){
+ if(!confirm(`Cancelar o pedido #${id}? O estoque será devolvido.`))return;
+ try{await request('/Pedido/'+id,{method:'DELETE'});alert('Pedido cancelado!');await carregarMeusPedidos();await carregarProdutos()}
+ catch(e){alert('Não foi possível cancelar: '+e.message)}
+}
+window.addEventListener('DOMContentLoaded' ,()=>{atualizarAuthButton();carregarProdutos();});
+</script>
+<!-- VLibras: recurso de acessibilidade em Libras (serviço externo). -->
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plugin-top-wrapper"></div>
+  </div>
+</div>
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+  // Inicializa o widget oficial do VLibras sem alterar o backend.
+  if (window.VLibras && window.VLibras.Widget) {
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  }
+</script>
+</body>
+</html>
