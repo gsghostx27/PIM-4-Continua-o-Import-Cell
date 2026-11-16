@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Import Cell</string>
+    <string name="title_activity_main">Import Cell</string>
+    <string name="package_name">com.importcell.app</string>
+    <string name="custom_url_scheme">com.importcell.app</string>
+</resources>
